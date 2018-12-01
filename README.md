@@ -12,4 +12,7 @@
 
 ## 3. Methods to test
 
-1.
+1. LinearRegression : utiliser ça mais exploiter toutes les données (ex : le sexe)
+2. Random forests
+3. Neural network
+4. 
