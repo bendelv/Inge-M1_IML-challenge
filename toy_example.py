@@ -144,10 +144,13 @@ def make_submission(y_predict, user_movie_ids, file_name='submission',
     file_name: path
         The final path to the submission file
     """
+    directory = "outputs"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
     # Naming the file
     if date:
-        file_name = '{}_{}'.format(file_name, time.strftime('%d-%m-%Y_%Hh%M'))
+        file_name = '{}/{}_{}'.format(directory, file_name, time.strftime('%d-%m-%Y_%Hh%M'))
 
     file_name = '{}.txt'.format(file_name)
 
@@ -197,8 +200,10 @@ if __name__ == '__main__':
     X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
 
     # Predict
+    print("Predict..")
     y_pred = model.predict(X_ts)
 
     # Making the submission file
+    print("HERE")
     fname = make_submission(y_pred, test_user_movie_pairs, 'toy_example')
     print('Submission file "{}" successfully written'.format(fname))
