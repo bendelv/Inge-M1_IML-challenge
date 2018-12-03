@@ -211,5 +211,5 @@ if __name__ == '__main__':
 
 
     # Making the submission file
-    fname = make_submission(y_pred, test_user_movie_pairs, 'toy_example')
+    fname = make_submission(y_pred, test_user_movie_pairs, 'regression')
     print('Submission file "{}" successfully written'.format(fname))
