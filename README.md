@@ -17,4 +17,7 @@
 1. LinearRegression : utiliser ça mais exploiter toutes les données (ex : le sexe)
 2. Random forests
 3. Neural network
-4.
+4. Knn (Ben)
+
+## 4. Remarks
+- don't feel like adding features about users or movies would improve prediction. See tested 4. and 5.
