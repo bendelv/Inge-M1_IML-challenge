@@ -12,6 +12,7 @@
 4. Rounded LinearRegression : 0.97520
 5. Rounded LinearRegression with gender added to feature: 0.97520
 6. Bagging 10 estimators of 10-NN with 0.25 of LS (can't more, memory error..): 1.52260
+7. Rounded Bagging 10 estimators of 10-NN regressor with 0.25 of LS: 1.20338
 
 ## 3. Methods to test
 
