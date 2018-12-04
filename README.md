@@ -11,10 +11,11 @@
 3. LinearClassifier : 1.72767
 4. Rounded LinearRegression : 0.97520
 5. Rounded LinearRegression with gender added to feature: 0.97520
+6. Bagging 10 estimators of 10-NN with 0.25 of LS (can't more, memory error..): 1.52260
 
 ## 3. Methods to test
 
-1. Knn (Ben)
+1.
 2. Random forests
 3. Neural network
 4.
