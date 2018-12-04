@@ -14,10 +14,12 @@
 
 ## 3. Methods to test
 
-1. LinearRegression : utiliser ça mais exploiter toutes les données (ex : le sexe)
+1. Knn (Ben)
 2. Random forests
 3. Neural network
-4. Knn (Ben)
+4.
 
 ## 4. Remarks
+- Please use toy_example as template: create output in 'outputs' dir and keep name of your .py file to create the name of the output file.
+
 - don't feel like adding features about users or movies would improve prediction. See tested 4. and 5.

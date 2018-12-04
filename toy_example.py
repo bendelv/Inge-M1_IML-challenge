@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import time
 import datetime
 from contextlib import contextmanager
@@ -204,6 +205,6 @@ if __name__ == '__main__':
     y_pred = model.predict(X_ts)
 
     # Making the submission file
-    print("HERE")
-    fname = make_submission(y_pred, test_user_movie_pairs, 'toy_example')
+    file_name =  os.path.basename(sys.argv[0]).split(".")[0]
+    fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
