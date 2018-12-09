@@ -15,6 +15,9 @@
  - DecisionTreeRegressor : 2.47322 (toy_example)
  - DecisionTreeRegressor with gender of user added to feature: 2.45850
 
+### RF:
+ - depth = 8; feat = 0.7; est = 50 : 1.15
+
 ### kNN
 - Bagging 10 estimators of 10-NN with 0.25 of LS (can't more, memory error..): 1.52260
 - Rounded Bagging 10 estimators of 10-NN regressor with 0.25 of LS: 1.20338
