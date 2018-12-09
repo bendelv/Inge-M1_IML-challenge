@@ -6,12 +6,11 @@ import time
 import datetime
 from contextlib import contextmanager
 
-
 import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.linear_model import LinearRegression
-
+from sklearn.model_selection import cross_val_score
 
 @contextmanager
 def measure_time(label):
@@ -187,7 +186,9 @@ if __name__ == '__main__':
     y_ls = training_labels
     start = time.time()
     model = LinearRegression()
-
+    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
+    print(scores)
+    """
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
@@ -213,3 +214,4 @@ if __name__ == '__main__':
     # Making the submission file
     fname = make_submission(y_pred, test_user_movie_pairs, 'regression')
     print('Submission file "{}" successfully written'.format(fname))
+    """
