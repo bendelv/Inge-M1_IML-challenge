@@ -13,6 +13,8 @@ import numpy as np
 from scipy import sparse
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
 
 
 @contextmanager
@@ -187,12 +189,21 @@ if __name__ == '__main__':
 
     # Build the model
     y_ls = training_labels
+    "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
     model = RandomForestClassifier(bootstrap=False, criterion='gini',
-            max_depth=3, max_features=0.2, max_leaf_nodes=None,
-            min_samples_leaf=1, min_samples_split=2,
-            min_weight_fraction_leaf=0.0, n_estimators=100, n_jobs=None,
-            oob_score=False, random_state=0, verbose=0, warm_start=False)
+            max_depth=8, max_features=0.7, max_leaf_nodes=None,
+            n_estimators=50, n_jobs=-1,
+            oob_score=False, random_state=0, verbose=1, warm_start=False)
+    """
+    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
+    print(np.mean(scores))
+
+    """
+    with measure_time('Training'):
+        print('Training...')
+        model.fit(X_ls, y_ls)
+
 
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
@@ -204,6 +215,7 @@ if __name__ == '__main__':
     # Predict
     print("Predict..")
     y_pred = model.predict(X_ts)
+    "print(mean_squared_error(y_ts, y_pred))"
 
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
