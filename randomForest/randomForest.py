@@ -2,16 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import os
+import sys
 import time
 import datetime
 from contextlib import contextmanager
 
+
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import cross_val_predict
+
+
 @contextmanager
 def measure_time(label):
     """
@@ -185,15 +188,11 @@ if __name__ == '__main__':
     # Build the model
     y_ls = training_labels
     start = time.time()
-    model = LinearRegression()
-
-    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
-    print(scores)
-
-    """
-    with measure_time('Training'):
-        print('Training...')
-        model.fit(X_ls, y_ls)
+    model = RandomForestClassifier(bootstrap=False, criterion='gini',
+            max_depth=3, max_features=0.2, max_leaf_nodes=None,
+            min_samples_leaf=1, min_samples_split=2,
+            min_weight_fraction_leaf=0.0, n_estimators=100, n_jobs=None,
+            oob_score=False, random_state=0, verbose=0, warm_start=False)
 
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
@@ -203,17 +202,10 @@ if __name__ == '__main__':
     X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
 
     # Predict
+    print("Predict..")
     y_pred = model.predict(X_ts)
-    i=0
-    while i<len(y_pred):
-        y_pred[i] = round(y_pred[i])
-        if y_pred[i] > 5.0:
-            y_pred[i] = 5.0
-        i = i+1
-
-
 
     # Making the submission file
-    fname = make_submission(y_pred, test_user_movie_pairs, 'regression')
+    file_name =  os.path.basename(sys.argv[0]).split(".")[0]
+    fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
-    """
