@@ -5,20 +5,24 @@
 - [Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 
 ## 2. Methods tested
+### Linear:
+ - LinearClassifier : 1.72767
+ - Rounded LinearRegression : 0.97520
+ - Rounded LinearRegression with gender added to feature: 0.97520
+ - Rounded Bagging 10 estimators of linear regression with 0.25 of LS: 0.99946
 
-1. DecisionTreeRegressor : 2.47322 (toy_example)
-2. DecisionTreeRegressor with gender of user added to feature: 2.45850
-3. LinearClassifier : 1.72767
-4. Rounded LinearRegression : 0.97520
-5. Rounded LinearRegression with gender added to feature: 0.97520
-6. Bagging 10 estimators of 10-NN with 0.25 of LS (can't more, memory error..): 1.52260
-7. Rounded Bagging 10 estimators of 10-NN regressor with 0.25 of LS: 1.20338
-8. Rounded Bagging 10 estimators of linear regression with 0.25 of LS: 0.99946
+### DT:
+ - DecisionTreeRegressor : 2.47322 (toy_example)
+ - DecisionTreeRegressor with gender of user added to feature: 2.45850
+
+### kNN
+- Bagging 10 estimators of 10-NN with 0.25 of LS (can't more, memory error..): 1.52260
+- Rounded Bagging 10 estimators of 10-NN regressor with 0.25 of LS: 1.20338
 
 ## 3. Methods to test
 
 1.
-2. Random forests
+2.
 3. Neural network
 4.
 
