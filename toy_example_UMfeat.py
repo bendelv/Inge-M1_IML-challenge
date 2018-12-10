@@ -81,7 +81,7 @@ def build_rating_matrix(user_movie_rating_triplets):
 
 def slice_feature(data_matrix, n):
     return data_matrix[:, n]
-	
+
 def create_learning_matrices(rating_matrix, user_movie_pairs):
     """
     Create the learning matrix `X` from the `rating_matrix`.
@@ -142,17 +142,18 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     # Features for movies
     "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
     "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
-    
+
     data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
-    
+
 
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
-    print(len(genre), genre[1, :])
+    print(genre.shape, genre[1, :])
 
-    genres_stack = np.zeros((len(user_movie_pairs), len(genre)))
+    genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
+    print(genres_stack.shape)
     for i in np.arange(len(user_movie_pairs)):
-            genres_stack[i][:] = genre[user_movie_pairs[i, 0] - 1, :]
+            genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
 
 
     #Feature movie rating by users
@@ -229,7 +230,7 @@ if __name__ == '__main__':
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
-
+    """
     # Build the model
     y_ls = training_labels
     start = time.time()
@@ -254,3 +255,4 @@ if __name__ == '__main__':
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
+"""
