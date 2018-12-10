@@ -146,7 +146,7 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
     
-    """
+    
     # Features for movies
     "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
     "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
@@ -156,12 +156,13 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
-    print(len(genre), genre[1, :])
+    print(genre.shape, genre[1, :])
 
-    genres_stack = np.zeros((len(user_movie_pairs), len(genre)))
+    genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
+    print(genres_stack.shape)
     for i in np.arange(len(user_movie_pairs)):
-            genres_stack[i][:] = genre[user_movie_pairs[i, 0] - 1, :]
-    """
+        genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
+    
 
     #Feature movie rating by users
     rating_matrix = rating_matrix.tocsc()
