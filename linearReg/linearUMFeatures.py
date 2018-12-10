@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import time
 import datetime
 from contextlib import contextmanager
@@ -11,8 +10,7 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import LinearRegression
 
 
 @contextmanager
@@ -53,6 +51,8 @@ def load_from_csv(path, delimiter=','):
     """
     return pd.read_csv(path, delimiter=delimiter).values.squeeze()
 
+def slice_feature(data_matrix, n):
+    return data_matrix[:, n]
 
 def build_rating_matrix(user_movie_rating_triplets):
     """
@@ -109,15 +109,55 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X: sparse array [n_predictions, n_users + n_movies]
         The learning matrix in csr sparse format
     """
-    # Feature for users
+
+    prefix = 'data/'
+    data_user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
+    "Feature for users"
+    # Feature gender
+    gender = slice_feature(data_user, 2)
+
+    for i in np.arange(len(gender)):
+        if gender[i] == 'M':
+            gender[i] = 0
+        else:
+            gender[i] = 1
+
+    gender_stack = np.zeros((len(user_movie_pairs), 1))
+    for i in np.arange(len(user_movie_pairs)):
+        gender_stack[i] = gender[user_movie_pairs[i, 0] - 1]
+
+    # Feature age
+    age = slice_feature(data_user, 1)
+
+    age_stack = np.zeros((len(user_movie_pairs), 1))
+    for i in np.arange(len(user_movie_pairs)):
+        age_stack[i] = gender[user_movie_pairs[i, 0] - 1]
+
+    # Feature user ratings on movies
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
 
-    # Features for movies
+    "Features for movies"
+    """
+    data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))
+    # Feature genre 5 - 23
+    genre = data_movie[:, 5:23]
+    print(len(genre), genre[1, :])
+
+    genres_stack = np.zeros((len(user_movie_pairs), len(genre)))
+    for i in np.arange(len(user_movie_pairs)):
+            genres_stack[i][:] = genre[user_movie_pairs[i, 0] - 1, :]
+    """
+
+    #Feature movie rating by users
     rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
 
     X = sparse.hstack((user_features, movie_features))
+    X = sparse.hstack((X, gender_stack))
+    X = sparse.hstack((X, age_stack))
+    "X = sparse.hstack((X, genres_stack))"
+
     return X.tocsr()
 
 
@@ -188,11 +228,13 @@ if __name__ == '__main__':
     # Build the model
     y_ls = training_labels
     start = time.time()
-    model = DecisionTreeRegressor()
-    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
-    print(scores,'\t',np.mean(scores))
+    model = LinearRegression()
 
     """
+    with measure_time('Training'):
+        print('Training...')
+        model.fit(X_ls, y_ls)
+
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
@@ -204,8 +246,15 @@ if __name__ == '__main__':
     print("Predict..")
     y_pred = model.predict(X_ts)
 
+    i=0
+    while i<len(y_pred):
+        y_pred[i] = round(y_pred[i])
+        if y_pred[i] > 5.0:
+            y_pred[i] = 5.0
+        i = i+1
+
     # Making the submission file
-    file_name =  os.path.basename(sys.argv[0]).split(".")[0]
-    fname = make_submission(y_pred, test_user_movie_pairs, file_name)
+
+    fname = make_submission(y_pred, test_user_movie_pairs, 'linearReg_gender')
     print('Submission file "{}" successfully written'.format(fname))
     """
