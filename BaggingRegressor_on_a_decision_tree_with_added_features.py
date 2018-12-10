@@ -11,7 +11,7 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import BaggingRegressor
 
 
 
@@ -244,15 +244,17 @@ if __name__ == '__main__':
     y_ls = training_labels
     "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
-    model = GradientBoostingRegressor()
+    model = BaggingRegressor(base_estimator=None, n_estimators=10, max_samples=1.0, 
+                             max_features=1.0, bootstrap=True, bootstrap_features=False, 
+                             oob_score=False, warm_start=False, n_jobs=None, 
+                             random_state=None, verbose=0)
     
-    
-    """
+
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
     print(np.mean(scores))
-    """
 
     
+    """
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
@@ -274,4 +276,4 @@ if __name__ == '__main__':
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
-    
+    """
