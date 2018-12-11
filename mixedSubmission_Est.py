@@ -176,23 +176,21 @@ if __name__ == '__main__':
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
     submissions = ['GradientBoostingRegressor_with_added_features_10-12-2018_23h49.txt',
-                   'RandomForestRegressor_with_added_features_10-12-2018_23h44.txt']
-    weights = [2, 1]
+                   'RandomForestRegressor_with_added_features_10-12-2018_23h44.txt',
+                   'adaboost_with_added_features_10-12-2018_23h55.txt']
+    weights = [2, 1, 1]
 
-    "predictions = np.zeros((,len(submissions)))"
     nb_test = len(test_user_movie_pairs)
-    prediction = np.zeros((nb_test, 1))
+    prediction = np.zeros(nb_test)
 
     for subm, weight in zip(submissions, weights):
-        n_pred = pd.read_csv("outputs/{}".format(subm), delimiter = ',', usecols=lambda x: x.upper() in ['PREDICTED_RATING']).values
+        n_pred = pd.read_csv("outputs/{}".format(subm), delimiter = ',', usecols=lambda x: x.upper() in ['PREDICTED_RATING']).values.squeeze()
         prediction = prediction + weight*n_pred
 
     weighted_pred = prediction/np.sum(weights)
     y_pred = weighted_pred
-    print(y_pred)
 
     # ------------------------------ Prediction ------------------------------ #
-
 
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]

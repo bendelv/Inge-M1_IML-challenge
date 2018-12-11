@@ -145,24 +145,22 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     # Feature user ratings on movies
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
-    
-    
+
+
     # Features for movies
     "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
     "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
-    
+
     data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
-    
+
 
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
-    print(genre.shape, genre[1, :])
-
     genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
-    print(genres_stack.shape)
+
     for i in np.arange(len(user_movie_pairs)):
         genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
-    
+
 
     #Feature movie rating by users
     rating_matrix = rating_matrix.tocsc()
@@ -244,15 +242,14 @@ if __name__ == '__main__':
     y_ls = training_labels
     "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
-    model = GradientBoostingRegressor()
+    "model = GradientBoostingRegressor()"
     
-    
-    """
-    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
-    print(np.mean(scores))
-    """
+    #means CV nMSE = -2.77
+    model = GradientBoostingRegressor(n_estimators=1000, learning_rate=1.0, max_depth=2)
 
-    
+    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
+    print(scores, '\t' ,np.mean(scores))
+
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
@@ -269,20 +266,16 @@ if __name__ == '__main__':
     print("Predict..")
     y_pred = model.predict(X_ts)
     "print(mean_squared_error(y_ts, y_pred))"
-    
-    
+
+
     i=0
     while i<len(y_pred):
         y_pred[i] = round(y_pred[i])
         if y_pred[i] > 5.0:
             y_pred[i] = 5.0
         i = i+1
-    
-    
-    
 
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
-    
