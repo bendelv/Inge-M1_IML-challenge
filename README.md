@@ -2,6 +2,7 @@
 
 ## 1. Links
 
+- [iML Challenge - results](https://docs.google.com/spreadsheets/d/1CJggdjwZIrY0Uxjc2w4GO9f6A9odnoS1kRvK2JIszME/edit?usp=sharing)
 - [Markdown Cheatsheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
 
 ## 2. Methods tested
