@@ -173,37 +173,26 @@ if __name__ == '__main__':
 
     # ------------------------------- Learning ------------------------------- #
     # Load training data
-    training_user_movie_pairs = load_from_csv(os.path.join(prefix,
-                                                           'data_train.csv'))
-    print(training_user_movie_pairs)
-    training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
-
-    user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
-                                            training_labels.reshape((-1, 1))))
-
-    # Build the learning matrix
-    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
-
-    # Build the model
-    y_ls = training_labels
-    start = time.time()
-    model = DecisionTreeRegressor()
-
-    with measure_time('Training'):
-        print('Training...')
-        model.fit(X_ls, y_ls)
-
-    # ------------------------------ Prediction ------------------------------ #
-    # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
-    # Build the prediction matrix
-    X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
+    submissions = ['GradientBoostingRegressor_with_added_features_10-12-2018_23h49.txt',
+                   'RandomForestRegressor_with_added_features_10-12-2018_23h44.txt']
+    weights = [2, 1]
 
-    # Predict
-    print("Predict..")
-    y_pred = model.predict(X_ts)
+    "predictions = np.zeros((,len(submissions)))"
+    nb_test = len(test_user_movie_pairs)
+    prediction = np.zeros((nb_test, 1))
+
+    for subm, weight in zip(submissions, weights):
+        n_pred = pd.read_csv("outputs/{}".format(subm), delimiter = ',', usecols=lambda x: x.upper() in ['PREDICTED_RATING']).values
+        prediction = prediction + weight*n_pred
+
+    weighted_pred = prediction/np.sum(weights)
+    y_pred = weighted_pred
+    print(y_pred)
+
+    # ------------------------------ Prediction ------------------------------ #
+
 
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]

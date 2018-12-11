@@ -148,10 +148,8 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
-    print(genre.shape, genre[1, :])
-
     genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
-    print(genres_stack.shape)
+
     for i in np.arange(len(user_movie_pairs)):
             genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
 
@@ -230,7 +228,7 @@ if __name__ == '__main__':
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
-    """
+
     # Build the model
     y_ls = training_labels
     start = time.time()
@@ -239,7 +237,9 @@ if __name__ == '__main__':
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
-
+    print(model.get_params())
+    
+    """
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
