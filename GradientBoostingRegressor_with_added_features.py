@@ -245,11 +245,12 @@ if __name__ == '__main__':
     "model = GradientBoostingRegressor()"
     
     #means CV nMSE = -2.77
-    model = GradientBoostingRegressor(n_estimators=1000, learning_rate=1.0, max_depth=2)
-
+    model = GradientBoostingRegressor(max_depth=5)
+    """
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
     print(scores, '\t' ,np.mean(scores))
-
+    """
+    
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)

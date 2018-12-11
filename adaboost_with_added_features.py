@@ -13,6 +13,7 @@ import numpy as np
 from scipy import sparse
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor
 
 
 from sklearn.model_selection import cross_val_score
@@ -244,11 +245,11 @@ if __name__ == '__main__':
     y_ls = training_labels
     "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
-    model = AdaBoostRegressor(base_estimator=RandomForestRegressor(max_depth=8))
-
+    model = AdaBoostRegressor(base_estimator=ExtraTreesRegressor(max_depth=8), n_estimators=100)
+    """
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
     print(np.mean(scores))
-
+    """
 
 
     with measure_time('Training'):

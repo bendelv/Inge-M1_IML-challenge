@@ -244,7 +244,7 @@ if __name__ == '__main__':
     y_ls = training_labels
     "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
-    model = RandomForestRegressor(n_estimators=100, criterion='mse', max_depth=8, 
+    model = RandomForestRegressor(n_estimators=50, criterion='mse', max_depth=3, 
                                   min_samples_split=2, min_samples_leaf=1, 
                                   min_weight_fraction_leaf=0.0, max_features='auto', 
                                   max_leaf_nodes=None, min_impurity_decrease=0.0, 
@@ -252,12 +252,12 @@ if __name__ == '__main__':
                                   n_jobs=-1, random_state=None, verbose=0, warm_start=False)
     
     
-  
+    """
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
     print(np.mean(scores))
-
-
     """
+    
+    
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
@@ -279,4 +279,4 @@ if __name__ == '__main__':
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
-    """
+    
