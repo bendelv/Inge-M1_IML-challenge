@@ -145,14 +145,14 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     # Feature user ratings on movies
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
-    
-    
+
+
     # Features for movies
     "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
     "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
-    
+
     data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
-    
+
 
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
@@ -162,7 +162,7 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     print(genres_stack.shape)
     for i in np.arange(len(user_movie_pairs)):
         genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
-    
+
 
     #Feature movie rating by users
     rating_matrix = rating_matrix.tocsc()
@@ -250,7 +250,7 @@ if __name__ == '__main__':
     print(np.mean(scores))
 
 
-    """
+
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
@@ -272,4 +272,3 @@ if __name__ == '__main__':
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
-    """
