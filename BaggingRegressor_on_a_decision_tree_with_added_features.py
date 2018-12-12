@@ -145,24 +145,22 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     # Feature user ratings on movies
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
-    
-    
+
+
     # Features for movies
     "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
     "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
-    
+
     data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
-    
+
 
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
-    print(genre.shape, genre[1, :])
 
     genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
-    print(genres_stack.shape)
     for i in np.arange(len(user_movie_pairs)):
         genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
-    
+
 
     #Feature movie rating by users
     rating_matrix = rating_matrix.tocsc()
@@ -244,16 +242,16 @@ if __name__ == '__main__':
     y_ls = training_labels
     "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
-    model = BaggingRegressor(base_estimator=None, n_estimators=10, max_samples=1.0, 
-                             max_features=1.0, bootstrap=True, bootstrap_features=False, 
-                             oob_score=False, warm_start=False, n_jobs=None, 
+    model = BaggingRegressor(base_estimator=None, n_estimators=10, max_samples=1.0,
+                             max_features=1.0, bootstrap=True, bootstrap_features=False,
+                             oob_score=False, warm_start=False, n_jobs=-1,
                              random_state=None, verbose=0)
-    
 
-    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
+    """
+    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5)
     print(np.mean(scores))
 
-    
+
     """
     with measure_time('Training'):
         print('Training...')
@@ -276,4 +274,3 @@ if __name__ == '__main__':
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
-    """

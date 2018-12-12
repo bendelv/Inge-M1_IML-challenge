@@ -237,8 +237,8 @@ if __name__ == '__main__':
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
-    print(model.get_params())
-    
+    print(model.tree_.max_depth)
+
     """
     # ------------------------------ Prediction ------------------------------ #
     # Load test data

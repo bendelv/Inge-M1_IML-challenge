@@ -175,7 +175,6 @@ if __name__ == '__main__':
     # Load training data
     training_user_movie_pairs = load_from_csv(os.path.join(prefix,
                                                            'data_train.csv'))
-    print(training_user_movie_pairs)
     training_labels = load_from_csv(os.path.join(prefix, 'output_train.csv'))
 
     user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
@@ -194,6 +193,9 @@ if __name__ == '__main__':
         print('Training...')
         model.fit(X_ls, y_ls)
 
+    print(model.get_params(deep = True))
+    print(model.decision_path())
+    """
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
@@ -209,3 +211,4 @@ if __name__ == '__main__':
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
+    """
