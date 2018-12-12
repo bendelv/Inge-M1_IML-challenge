@@ -11,7 +11,8 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn import svm
-
+from sklearn.ensemble import BaggingRegressor
+from sklearn.model_selection import cross_val_score
 
 @contextmanager
 def measure_time(label):
@@ -77,6 +78,8 @@ def build_rating_matrix(user_movie_rating_triplets):
 
     return sparse.coo_matrix((training_ratings, (rows, cols))).tocsr()
 
+def slice_feature(data_matrix, n):
+    return data_matrix[:, n]
 
 def create_learning_matrices(rating_matrix, user_movie_pairs):
     """
@@ -107,15 +110,58 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X: sparse array [n_predictions, n_users + n_movies]
         The learning matrix in csr sparse format
     """
-    # Feature for users
+
+    prefix = 'data/'
+    data_user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
+    "Feature for users"
+    # Feature gender
+    gender = slice_feature(data_user, 2)
+
+    for i in np.arange(len(gender)):
+        if gender[i] == 'M':
+            gender[i] = 0
+        else:
+            gender[i] = 1
+
+    gender_stack = np.zeros((len(user_movie_pairs), 1))
+    for i in np.arange(len(user_movie_pairs)):
+        gender_stack[i] = gender[user_movie_pairs[i, 0] - 1]
+
+    # Feature age
+    age = slice_feature(data_user, 1)
+
+    age_stack = np.zeros((len(user_movie_pairs), 1))
+    for i in np.arange(len(user_movie_pairs)):
+        age_stack[i] = age[user_movie_pairs[i, 0] - 1]
+
+    # Feature user ratings on movies
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
 
     # Features for movies
+    "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
+    "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
+
+    data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
+
+
+    # Feature genre 5 - 23
+    genre = data_movie[:, 5:23]
+    genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
+
+    for i in np.arange(len(user_movie_pairs)):
+            genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
+
+
+    #Feature movie rating by users
     rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
 
     X = sparse.hstack((user_features, movie_features))
+    X = sparse.hstack((X, gender_stack))
+    X = sparse.hstack((X, age_stack))
+    X = sparse.hstack((X, genres_stack))
+
     return X.tocsr()
 
 
@@ -186,11 +232,12 @@ if __name__ == '__main__':
     # Build the model
     y_ls = training_labels
     start = time.time()
-    clf = svm.SVR()
+    model = svm.SVR(kernel = 'poly', degree = 2, C = 0.7)
+    baggedModel = BaggingRegressor(base_estimator=model, n_estimators = 5, max_features = 0.6, max_samples = 0.3, bootstrap = False)
 
     with measure_time('Training'):
         print('Training...')
-        clf.fit(X_ls, y_ls)
+        baggedModel.fit(X_ls, y_ls)
 
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
