@@ -169,7 +169,7 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X = sparse.hstack((user_features, movie_features))
     X = sparse.hstack((X, gender_stack))
     X = sparse.hstack((X, age_stack))
-    "X = sparse.hstack((X, genres_stack))"
+    X = sparse.hstack((X, genres_stack))
 
     return X.tocsr()
 

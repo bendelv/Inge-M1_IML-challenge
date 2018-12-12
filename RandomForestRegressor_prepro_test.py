@@ -13,7 +13,7 @@ import numpy as np
 from scipy import sparse
 from sklearn.ensemble import AdaBoostRegressor
 from sklearn.ensemble import RandomForestRegressor
-
+from sklearn import preprocessing
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
@@ -171,9 +171,11 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X = sparse.hstack((user_features, movie_features))
     X = sparse.hstack((X, gender_stack))
     X = sparse.hstack((X, age_stack))
-    "X = sparse.hstack((X, genres_stack))"
+    X = sparse.hstack((X, genres_stack))
+    
+    X_scaled = preprocessing.scale(X, with_mean=False)
 
-    return X.tocsr()
+    return X_scaled.tocsr()
 
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
@@ -244,16 +246,12 @@ if __name__ == '__main__':
     y_ls = training_labels
     "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
-    model = RandomForestRegressor(n_estimators=100, criterion='mse', max_depth=5, 
-                                  min_samples_split=4, min_samples_leaf=1, 
-                                  min_weight_fraction_leaf=0.0, max_features='auto', 
-                                  max_leaf_nodes=None, min_impurity_decrease=0.0, 
-                                  min_impurity_split=None, bootstrap=True, oob_score=False, 
-                                  n_jobs=-1, random_state=None, verbose=0, warm_start=False)
+    model = RandomForestRegressor(n_estimators=50, max_depth=4, 
+                                  min_samples_split=4)
     
     
     
-    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
+    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = 16)
     print(np.mean(scores))
     
     
