@@ -247,7 +247,7 @@ if __name__ == '__main__':
     X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
 
     # Predict
-    y_pred = clf.predict(X_ts)
+    y_pred = baggedModel.predict(X_ts)
     # y_pred = model.predict(X_ts)
 
 
