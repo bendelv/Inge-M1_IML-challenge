@@ -11,9 +11,9 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from sklearn.ensemble import GradientBoostingRegressor
-
-
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import LogisticRegression
 
 from sklearn.model_selection import cross_val_score
 from sklearn.model_selection import train_test_split
@@ -122,8 +122,7 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     prefix = 'data/'
     data_user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
     "Feature for users"
-
-	# Feature gender
+    # Feature gender
     gender = slice_feature(data_user, 2)
 
     for i in np.arange(len(gender)):
@@ -146,47 +145,33 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     # Feature user ratings on movies
     rating_matrix = rating_matrix.tocsr()
     user_features = rating_matrix[user_movie_pairs[:, 0]]
-
-
+    
+    
     # Features for movies
     "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
     "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
-
+    
     data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
+    
 
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
-    genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
+    print(genre.shape, genre[1, :])
 
+    genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
+    print(genres_stack.shape)
     for i in np.arange(len(user_movie_pairs)):
         genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
-
+    
 
     #Feature movie rating by users
     rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
-    
-    
-    movie_features = movie_features.mean(1)
-    user_features = user_features.mean(1)
-    print(user_features)
-    print(user_features.shape)
-    movie_features = movie_features.reshape(-1,1)
-    user_features = user_features.reshape(-1,1)
-    
-    
-    
-    
+
     X = sparse.hstack((user_features, movie_features))
-    
-    """
     X = sparse.hstack((X, gender_stack))
     X = sparse.hstack((X, age_stack))
     X = sparse.hstack((X, genres_stack))
-    """
-    
-    
-    
 
     return X.tocsr()
 
@@ -255,50 +240,24 @@ if __name__ == '__main__':
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
 
-
-    
-    "print(X_ls)"
-
-
-
-
-    """
-
-
     # Build the model
     y_ls = training_labels
     "X_ls, X_ts, y_ls, y_ts = train_test_split(X, y, test_size=0.2)"
     start = time.time()
-    "model = GradientBoostingRegressor()"
+    model = LogisticRegression(n_jobs=-1)
     
-    #means CV nMSE = -2.77
-    model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)
     
     
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
-    print(scores, '\t' ,np.mean(scores))
-    
-    
-    """
-    
+    print(np.mean(scores))
     
     
     """
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
-        
-    importances = model.feature_importances_
-    
-    for i in importances:
-        print(i)
-    """
-    
-    
 
 
-
-    """
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
@@ -310,14 +269,6 @@ if __name__ == '__main__':
     print("Predict..")
     y_pred = model.predict(X_ts)
     "print(mean_squared_error(y_ts, y_pred))"
-
-
-    i=0
-    while i<len(y_pred):
-        "y_pred[i] = round(y_pred[i])"
-        if y_pred[i] > 5.0:
-            y_pred[i] = 5.0
-        i = i+1
 
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
