@@ -185,6 +185,7 @@ if __name__ == '__main__':
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
 
+    """
     # Build the model
     y_ls = training_labels
     start = time.time()
@@ -192,7 +193,6 @@ if __name__ == '__main__':
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
     print(scores,'\t',np.mean(scores))
 
-    """
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
