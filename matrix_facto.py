@@ -9,7 +9,7 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from scipy.sparse.linalg import svds
+from MFclass import MF
 
 @contextmanager
 def measure_time(label):
@@ -78,7 +78,7 @@ def build_rating_matrix(user_movie_rating_triplets):
 if __name__ == '__main__':
     prefix = 'data/'
 
-    #pour Frnacois
+    #pour Francois
     """
         mean_users = np.zeros((rating_matrix.shape[0], 1))
         for i in np.arange(1, rating_matrix.shape[0]):
@@ -95,10 +95,8 @@ if __name__ == '__main__':
 
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
 
+    model = MF(rating_matrix.todense(), 10, 0.1, 0.01, 20)
+    model.train()
 
-    test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
-    y_pred = all_prediction[test_user_movie_pairs]
-
-    file_name =  os.path.basename(sys.argv[0]).split(".")[0]
-    fname = make_submission(y_pred, test_user_movie_pairs, file_name)
-    print('Submission file "{}" successfully written'.format(fname))
+    reconstructed = model.full_matrix()
+    np.savetxt('reconstructed_mat_10_01_001_20.txt', reconstructed, fmt='%f')
