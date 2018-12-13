@@ -166,29 +166,81 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     rating_matrix = rating_matrix.tocsc()
     movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
     
-    
+    """
     movie_features = movie_features.mean(1)
     user_features = user_features.mean(1)
     print(user_features)
     print(user_features.shape)
     movie_features = movie_features.reshape(-1,1)
     user_features = user_features.reshape(-1,1)
+    print(user_features)
+    print(user_features.shape)
+    """
     
     
+    mean_users = np.zeros((user_features.shape[0], 1))
+    mean_movies = np.zeros((movie_features.shape[0], 1))
+    """
+    print(mean_users.shape)
+    print(mean_movies.shape)
+    """
+
+    for i in np.arange(1, user_features.shape[0]):
+            mean_users[i] = np.mean(user_features[i].data)
+            mean_movies[i] = np.mean(movie_features[i].data)
+            
+            if np.isnan(mean_users[i]):
+                mean_users[i] = 0
+            if np.isnan(mean_movies[i]):
+                mean_movies[i] = 0
+                
+    """   
+    print(mean_users)
+    print(mean_movies)
+    """
+    
+    """
+    mean_users_stack = np.zeros((len(mean_users), 1))
+    mean_movies_stack = np.zeros((len(mean_movies), 1))
+    for i in np.arange(len(mean_users)):
+        mean_users_stack[i] = mean_users[i]
+        mean_movies_stack[i] = mean_movies[i]
+    """
+    
+    "X = sparse.hstack((mean_users, mean_movies))"
+    "X = sparse.bmat([mean_users, mean_movies]).toarray()"
+    
+    X = np.column_stack((mean_users, mean_movies))
+
+    X = np.concatenate((X, gender_stack), axis=1)
+    
+    X = np.concatenate((X, age_stack), axis=1)
+    
+    X = np.concatenate((X, genres_stack), axis=1)
+
+    print(X.shape)
     
     
-    X = sparse.hstack((user_features, movie_features))
+    """
+    np.stack((X, gender_stack), axis=-1)
+    np.stack((X, age_stack), axis=-1)
+    np.stack((X, genres_stack), axis=-1)
+    """
     
+    sX = sparse.csr_matrix(X)
+    
+
     """
     X = sparse.hstack((X, gender_stack))
     X = sparse.hstack((X, age_stack))
     X = sparse.hstack((X, genres_stack))
     """
-    
-    
+
     
 
-    return X.tocsr()
+    "return X.tocsr()"
+   
+    return sX
 
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
@@ -257,12 +309,6 @@ if __name__ == '__main__':
 
 
     
-    "print(X_ls)"
-
-
-
-
-    """
 
 
     # Build the model
@@ -274,31 +320,33 @@ if __name__ == '__main__':
     #means CV nMSE = -2.77
     model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)
     
-    
+    """
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
     print(scores, '\t' ,np.mean(scores))
-    
-    
     """
     
+
     
     
-    """
+    
+
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
-        
+
+
     importances = model.feature_importances_
     
     for i in importances:
         print(i)
-    """
+
     
-    
+
 
 
 
     """
+
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
