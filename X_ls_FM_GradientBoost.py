@@ -131,9 +131,9 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
     X = sparse.hstack((user_features, movie_features))
     print(user_features.shape, movie_features.shape, age_stack.shape, X.shape)
-    X = np.concatenate((X, age_stack), axis=1)
+    X = sparse.hstack((X, age_stack))
     print(X.shape)
-    return X
+    return X.toarray()
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):

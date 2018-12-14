@@ -210,7 +210,8 @@ if __name__ == '__main__':
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
     X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
-
+    y_ls = training_labels
+    
     reconstructed = np.loadtxt('reconstructed/reconstructed_mat_10_0002_001_2000.txt')
 
     row, col = rating_matrix.nonzero()
