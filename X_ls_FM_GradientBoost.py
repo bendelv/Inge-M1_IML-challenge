@@ -12,7 +12,6 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import GradientBoostingRegressor
 
 def slice_feature(data_matrix, n):
     return data_matrix[:, n]
@@ -127,21 +126,11 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     for i in np.arange(len(user_movie_pairs)):
         age_stack[i] = age[user_movie_pairs[i, 0] - 1]
 
-    mean_users = np.zeros((user_features.shape[0], 1))
-    mean_movies = np.zeros((movie_features.shape[0], 1))
 
-    for i in np.arange(1, user_features.shape[0]):
-            mean_users[i] = np.mean(user_features[i].data)
-            mean_movies[i] = np.mean(movie_features[i].data)
-
-            if np.isnan(mean_users[i]):
-                mean_users[i] = 0
-            if np.isnan(mean_movies[i]):
-                mean_movies[i] = 0
-
-    X = np.column_stack((mean_users, mean_movies))
+    X = np.column_stack((user_features, movie_features))
+    print(user_features.shape, movie_features.shape, age_stack.shape)
     X = np.concatenate((X, age_stack), axis=1)
-
+    print(X.shape)
     return X
 
 
