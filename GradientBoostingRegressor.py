@@ -157,69 +157,50 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
     data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
 
+
     # Feature genre 5 - 23
     genre = data_movie[:, 5:23]
     genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
 
     for i in np.arange(len(user_movie_pairs)):
         genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
+        
        
-        
-        
-        
+    # Feature student occupation
+    student = data_user[:, 3]
     
+    for i in np.arange(len(student)):
+        if student[i] == 'student':
+            student[i] = 1
+        else:
+            student[i] = 0
+
+    student_stack = np.zeros((len(user_movie_pairs), 1))
+    for i in np.arange(len(user_movie_pairs)):
+        student_stack[i] = student[user_movie_pairs[i, 0] - 1]
+
+        
+        
+        
+        
+
     # Feature release date
+    """
     release_date = data_movie[:, 2]
     release_date = release_date.reshape(-1, 1)
         
-    "release_date = release_date.ndarray.astype(float)"
-
-    
-
-    
-    "mystr[-4:]"
-    
-    
-
     release_date_stack = np.zeros((len(user_movie_pairs), 1))
-
-
-    """
-    tmp = release_date[0][0]
-    print(tmp)
-    
-    day, month, year = tmp.split('-')
-    print(year)
-    print(type(year))
-    
-    year = float(year)
-    print(type(year))
-    """
-
-    
-    
-
 
     for i in np.arange(len(user_movie_pairs)):
         tmp = (release_date[user_movie_pairs[i, 1] - 1][0])
+        print(tmp)
         day, month, year = tmp.split('-')
         year = float(year)
         print(year)
-        
-        
-    """ 
-
-
-        
-
-        
-        "release_date_stack[i] = release_date_stack[i][-4:]"
-        
-    print(release_date_stack)
+        print(i)
+        print(len(user_movie_pairs))
+        release_date_stack[i] = year
     """
-
-
-
 
 
 
@@ -270,22 +251,14 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     
     "X = sparse.hstack((mean_users, mean_movies))"
     "X = sparse.bmat([mean_users, mean_movies]).toarray()"
-    
+
+
+
     X = np.column_stack((mean_users, mean_movies))
-
-    X = np.concatenate((X, gender_stack), axis=1)
-    
+    "X = np.concatenate((X, gender_stack), axis=1)"
     X = np.concatenate((X, age_stack), axis=1)
-
     
-    
-    
-    
-    
-    
-    
-    
-    
+    "X = np.concatenate((X, student_stack), axis=1)"
     "X = np.concatenate((X, genres_stack), axis=1)"
 
     print(X.shape)
@@ -309,7 +282,6 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     
 
     "return X.tocsr()"
-   
     return sX
 
 
@@ -390,30 +362,30 @@ if __name__ == '__main__':
     #means CV nMSE = -2.77
     model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)
     
-    """
+
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
     print(scores, '\t' ,np.mean(scores))
-    """
+
     
 
     
     
     
-    """
+
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
-    """
 
-    """
+
+
     importances = model.feature_importances_
     for i in importances:
         print(i)
-    """
+
     
 
 
-    """
+
 
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
@@ -439,4 +411,3 @@ if __name__ == '__main__':
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
     print('Submission file "{}" successfully written'.format(fname))
-    """
