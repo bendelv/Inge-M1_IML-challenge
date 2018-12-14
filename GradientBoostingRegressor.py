@@ -12,6 +12,9 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import RandomizedSearchCV
+
+
 
 
 
@@ -160,6 +163,64 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
     for i in np.arange(len(user_movie_pairs)):
         genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
+       
+        
+        
+        
+    
+    # Feature release date
+    release_date = data_movie[:, 2]
+    release_date = release_date.reshape(-1, 1)
+        
+    "release_date = release_date.ndarray.astype(float)"
+
+    
+
+    
+    "mystr[-4:]"
+    
+    
+
+    release_date_stack = np.zeros((len(user_movie_pairs), 1))
+
+
+    """
+    tmp = release_date[0][0]
+    print(tmp)
+    
+    day, month, year = tmp.split('-')
+    print(year)
+    print(type(year))
+    
+    year = float(year)
+    print(type(year))
+    """
+
+    
+    
+
+
+    for i in np.arange(len(user_movie_pairs)):
+        tmp = (release_date[user_movie_pairs[i, 1] - 1][0])
+        day, month, year = tmp.split('-')
+        year = float(year)
+        print(year)
+        
+        
+    """ 
+
+
+        
+
+        
+        "release_date_stack[i] = release_date_stack[i][-4:]"
+        
+    print(release_date_stack)
+    """
+
+
+
+
 
 
     #Feature movie rating by users
@@ -215,8 +276,17 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X = np.concatenate((X, gender_stack), axis=1)
     
     X = np.concatenate((X, age_stack), axis=1)
+
     
-    X = np.concatenate((X, genres_stack), axis=1)
+    
+    
+    
+    
+    
+    
+    
+    
+    "X = np.concatenate((X, genres_stack), axis=1)"
 
     print(X.shape)
     
@@ -329,20 +399,18 @@ if __name__ == '__main__':
     
     
     
-
+    """
     with measure_time('Training'):
         print('Training...')
         model.fit(X_ls, y_ls)
+    """
 
-
+    """
     importances = model.feature_importances_
-    
     for i in importances:
         print(i)
-
+    """
     
-
-
 
 
     """
