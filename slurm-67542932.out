@@ -1,0 +1,9 @@
+(69453, 1) (69453, 1) (69453, 1) (69453, 2)
+(69453, 1) (69453, 1) (69453, 1) (69453, 2)
+Begin CV..
+0.0280243589299 	 -0.863823120178
+Training...
+Duration of [Training]: 0:00:02.117840
+(29766, 1) (29766, 1) (29766, 1) (29766, 2)
+Predict..
+Submission file "outputs/meanUMRate_FM_GradientBoost_14-12-2018_14h49.txt" successfully written
