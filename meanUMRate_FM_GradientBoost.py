@@ -13,6 +13,7 @@ import numpy as np
 from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import cross_val_score
 
 def slice_feature(data_matrix, n):
     return data_matrix[:, n]
@@ -130,6 +131,8 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     mean_users = np.zeros((user_features.shape[0], 1))
     mean_movies = np.zeros((movie_features.shape[0], 1))
 
+    print("HERE")
+
     for i in np.arange(1, user_features.shape[0]):
             mean_users[i] = np.mean(user_features[i].data)
             mean_movies[i] = np.mean(movie_features[i].data)
@@ -138,8 +141,11 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
                 mean_users[i] = 0
             if np.isnan(mean_movies[i]):
                 mean_movies[i] = 0
+            print(mean_users[i], mean_movies[i])
 
+    print("HERE")
     X = np.column_stack((mean_users, mean_movies))
+    print(mean_users.shape, mean_movies.shape, age_stack.shape, X.shape)
     X = np.concatenate((X, age_stack), axis=1)
 
     return X

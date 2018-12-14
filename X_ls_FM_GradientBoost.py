@@ -12,6 +12,8 @@ import pandas as pd
 import numpy as np
 from scipy import sparse
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import cross_val_score
 
 def slice_feature(data_matrix, n):
     return data_matrix[:, n]
@@ -127,12 +129,11 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
         age_stack[i] = age[user_movie_pairs[i, 0] - 1]
 
 
-    X = np.column_stack((user_features, movie_features))
-    print(user_features.shape, movie_features.shape, age_stack.shape)
+    X = sparse.hstack((user_features, movie_features))
+    print(user_features.shape, movie_features.shape, age_stack.shape, X.shape)
     X = np.concatenate((X, age_stack), axis=1)
     print(X.shape)
     return X
-
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):
