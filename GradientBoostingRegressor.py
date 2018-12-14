@@ -255,11 +255,11 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
 
 
     X = np.column_stack((mean_users, mean_movies))
-    "X = np.concatenate((X, gender_stack), axis=1)"
+    X = np.concatenate((X, gender_stack), axis=1)
     X = np.concatenate((X, age_stack), axis=1)
     
-    "X = np.concatenate((X, student_stack), axis=1)"
-    "X = np.concatenate((X, genres_stack), axis=1)"
+    X = np.concatenate((X, student_stack), axis=1)
+    X = np.concatenate((X, genres_stack), axis=1)
 
     print(X.shape)
     
@@ -360,11 +360,18 @@ if __name__ == '__main__':
     "model = GradientBoostingRegressor()"
     
     #means CV nMSE = -2.77
-    model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)
+    
+    #params obtained from manual tuning:
+    "model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)"
+    
+    
+    #params obtained from randomized_search:
+    model = GradientBoostingRegressor(min_samples_split=2, min_samples_leaf=0.0001, max_depth=4)
     
 
     scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
-    print(scores, '\t' ,np.mean(scores))
+    print(scores, '\t' ,np.mean(scores), '\t' ,np.std(scores))
+
 
     
 
@@ -383,7 +390,6 @@ if __name__ == '__main__':
         print(i)
 
     
-
 
 
 
