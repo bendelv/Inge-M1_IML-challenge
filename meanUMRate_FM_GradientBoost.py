@@ -132,13 +132,14 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     mean_movies = np.zeros((movie_features.shape[0], 1))
 
     for i in np.arange(1, user_features.shape[0]):
-            mean_users[i] = np.mean(user_features[i].data)
-            mean_movies[i] = np.mean(movie_features[i].data)
+            mean_users[i] = np.mean(user_features[i])
+            mean_movies[i] = np.mean(movie_features[i])
 
             if np.isnan(mean_users[i]):
                 mean_users[i] = 0
             if np.isnan(mean_movies[i]):
                 mean_movies[i] = 0
+
 
     X = np.column_stack((mean_users, mean_movies))
     print(mean_users.shape, mean_movies.shape, age_stack.shape, X.shape)
@@ -209,9 +210,6 @@ if __name__ == '__main__':
 
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
-    y_ls = training_labels
-    
     reconstructed = np.loadtxt('reconstructed/reconstructed_mat_10_0002_001_2000.txt')
 
     row, col = rating_matrix.nonzero()
@@ -219,8 +217,11 @@ if __name__ == '__main__':
 
     for i, j in zip(row, col):
         reconstructed[i][j] = array_rating[i][j]
-
-    X_ts = create_learning_matrices(reconstructed, training_user_movie_pairs)
+    print(reconstructed)
+    print('Begin X_ls')
+    X_ls = create_learning_matrices(reconstructed, training_user_movie_pairs)
+    print('end X_ls \t', X_ls.shape)
+    y_ls = training_labels
 
     model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)
 
@@ -243,6 +244,13 @@ if __name__ == '__main__':
     # Predict
     print("Predict..")
     y_pred = model.predict(X_ts)
+
+    i=0
+    while i<len(y_pred):
+        "y_pred[i] = round(y_pred[i])"
+        if y_pred[i] > 5.0:
+            y_pred[i] = 5.0
+        i = i+1
 
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]

@@ -128,12 +128,9 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     for i in np.arange(len(user_movie_pairs)):
         age_stack[i] = age[user_movie_pairs[i, 0] - 1]
 
+    X = np.hstack((user_features, movie_features))
 
-    X = sparse.hstack((user_features, movie_features))
-    print(user_features.shape, movie_features.shape, age_stack.shape, X.shape)
-    X = sparse.hstack((X, age_stack))
-    print(X.shape)
-    return X.toarray()
+    return X
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):
@@ -197,8 +194,6 @@ if __name__ == '__main__':
 
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
-
     reconstructed = np.loadtxt('reconstructed/reconstructed_mat_10_0002_001_2000.txt')
 
     row, col = rating_matrix.nonzero()
@@ -207,9 +202,10 @@ if __name__ == '__main__':
     for i, j in zip(row, col):
         reconstructed[i][j] = array_rating[i][j]
 
-    X_ts = create_learning_matrices(reconstructed, training_user_movie_pairs)
+    X_ls = create_learning_matrices(reconstructed, training_user_movie_pairs)
+    y_ls = training_labels
 
-    model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)
+    model = GradientBoostingRegressor(min_samples_split=2, max_depth=4, min_samples_leaf = 0.0001)
 
     print('Begin CV..')
 
@@ -231,6 +227,12 @@ if __name__ == '__main__':
     print("Predict..")
     y_pred = model.predict(X_ts)
 
+    i=0
+    while i<len(y_pred):
+        "y_pred[i] = round(y_pred[i])"
+        if y_pred[i] > 5.0:
+            y_pred[i] = 5.0
+        i = i+1
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
     fname = make_submission(y_pred, test_user_movie_pairs, file_name)
