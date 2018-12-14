@@ -92,11 +92,17 @@ if __name__ == '__main__':
 
     user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
                                             training_labels.reshape((-1, 1))))
+    directory = "reconstructed"
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
-    rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+    nb_iterations = [1000]
+    for i in nb_iterations:
+        print(i)
+        print("="*10)
+        rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+        model = MF(rating_matrix.toarray(), 30, 0.001, 0.01, i)
+        model.train()
 
-    model = MF(rating_matrix.todense(), 10, 0.1, 0.01, 20)
-    model.train()
-
-    reconstructed = model.full_matrix()
-    np.savetxt('reconstructed_mat_10_01_001_20.txt', reconstructed, fmt='%f')
+        reconstructed = model.full_matrix()
+        np.savetxt('reconstructed/reconstructed_mat_30_0002_001_{}.txt'.format(i), reconstructed, fmt='%f')

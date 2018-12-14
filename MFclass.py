@@ -70,7 +70,6 @@ class MF():
             # Computer prediction and error
             prediction = self.get_rating(i, j)
             e = (r - prediction)
-
             # Update biases
             self.b_u[i] += self.alpha * (e - self.beta * self.b_u[i])
             self.b_i[j] += self.alpha * (e - self.beta * self.b_i[j])
