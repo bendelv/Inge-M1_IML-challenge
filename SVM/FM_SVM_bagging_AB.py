@@ -12,7 +12,10 @@ import numpy as np
 from scipy import sparse
 from sklearn import svm
 from sklearn.ensemble import BaggingRegressor
-from sklearn.model_selection import cross_val_score
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
 
 @contextmanager
 def measure_time(label):
@@ -224,15 +227,31 @@ if __name__ == '__main__':
     user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
                                             training_labels.reshape((-1, 1))))
 
-    # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
+    reconstructed = np.loadtxt('reconstructed/reconstructed_mat_10_0002_001_2000.txt')
 
-    # Build the model
+    row, col = rating_matrix.nonzero()
+    array_rating = rating_matrix.toarray()
+
+    for i, j in zip(row, col):
+        reconstructed[i][j] = array_rating[i][j]
+
+    X_ls = create_learning_matrices(reconstructed, training_user_movie_pairs)
     y_ls = training_labels
+
     start = time.time()
     model = svm.SVR(kernel = 'poly', degree = 2, C = 0.7)
-    baggedModel = BaggingRegressor(base_estimator=model, n_estimators = 5, max_features = 0.6, max_samples = 0.3, bootstrap = False)
+    "boostedModel = AdaBoostRegressor(base_estimator= model, n_estimators = 10, loss = 'square')"
+    baggedModel = BaggingRegressor(base_estimator=model, n_estimators = 50, max_features = 0.6, max_samples = 0.5, bootstrap = False)
+
+    X_train, X_test, y_train, y_test = train_test_split(X_ls, y_ls, test_size=0.30)
+
+    with measure_time('Training'):
+        print('Training...')
+        baggedModel.fit(X_train, y_train)
+
+    y_pred = baggedModel.predict(X_test)
+    print('MSE on 0.2 of LS: ',mean_squared_error(y_true, y_pred, multioutput='uniform_average'))
 
     with measure_time('Training'):
         print('Training...')

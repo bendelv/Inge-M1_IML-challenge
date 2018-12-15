@@ -12,7 +12,10 @@ import numpy as np
 from scipy import sparse
 from sklearn import svm
 from sklearn.ensemble import BaggingRegressor
-from sklearn.model_selection import cross_val_score
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.ensemble import AdaBoostRegressor
+from sklearn.metrics import mean_squared_error
+from sklearn.model_selection import train_test_split
 
 @contextmanager
 def measure_time(label):
@@ -109,22 +112,14 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X: sparse array [n_predictions, n_users + n_movies]
         The learning matrix in csr sparse format
     """
-
+    # Feature for users
     prefix = 'data/'
     data_user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
-    "Feature for users"
-    # Feature gender
-    gender = slice_feature(data_user, 2)
 
-    for i in np.arange(len(gender)):
-        if gender[i] == 'M':
-            gender[i] = 0
-        else:
-            gender[i] = 1
+    user_features = rating_matrix[user_movie_pairs[:, 0]]
 
-    gender_stack = np.zeros((len(user_movie_pairs), 1))
-    for i in np.arange(len(user_movie_pairs)):
-        gender_stack[i] = gender[user_movie_pairs[i, 0] - 1]
+    # Features for movies
+    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
 
     # Feature age
     age = slice_feature(data_user, 1)
@@ -133,35 +128,9 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     for i in np.arange(len(user_movie_pairs)):
         age_stack[i] = age[user_movie_pairs[i, 0] - 1]
 
-    # Feature user ratings on movies
-    rating_matrix = rating_matrix.tocsr()
-    user_features = rating_matrix[user_movie_pairs[:, 0]]
+    X = np.hstack((user_features, movie_features))
 
-    # Features for movies
-    "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
-    "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
-
-    data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
-
-
-    # Feature genre 5 - 23
-    genre = data_movie[:, 5:23]
-    genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
-
-    for i in np.arange(len(user_movie_pairs)):
-            genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
-
-
-    #Feature movie rating by users
-    rating_matrix = rating_matrix.tocsc()
-    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
-
-    X = sparse.hstack((user_features, movie_features))
-    X = sparse.hstack((X, gender_stack))
-    X = sparse.hstack((X, age_stack))
-    X = sparse.hstack((X, genres_stack))
-
-    return X.tocsr()
+    return X
 
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
@@ -224,19 +193,45 @@ if __name__ == '__main__':
     user_movie_rating_triplets = np.hstack((training_user_movie_pairs,
                                             training_labels.reshape((-1, 1))))
 
-    # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
+    print("Load reconstructed..")
+    reconstructed = np.loadtxt('reconstructed/reconstructed_mat_10_0002_001_2000.txt')
 
-    # Build the model
+    row, col = rating_matrix.nonzero()
+    array_rating = rating_matrix.toarray()
+
+    print("Correction and remplacement of reconstructed..")
+    # Correction of the values <1 and >5
+    for i in range(0,912):
+        for j in range(0,1542):
+            if reconstructed[i][j] < 1.0:
+                reconstructed[i][j] = 1.0
+            if reconstructed[i][j] > 5.0:
+                reconstructed[i][j] = 5.0
+
+    for i, j in zip(row, col):
+        reconstructed[i][j] = array_rating[i][j]
+
+    X_ls = create_learning_matrices(reconstructed, training_user_movie_pairs)
     y_ls = training_labels
+
     start = time.time()
     model = svm.SVR(kernel = 'poly', degree = 2, C = 0.7)
-    baggedModel = BaggingRegressor(base_estimator=model, n_estimators = 5, max_features = 0.6, max_samples = 0.3, bootstrap = False)
+    "boostedModel = AdaBoostRegressor(base_estimator= model, n_estimators = 10, loss = 'square')"
+    "baggedModel = BaggingRegressor(base_estimator=model, n_estimators = 50, max_features = 0.6, max_samples = 0.5, bootstrap = False)"
+
+    X_train, X_test, y_train, y_test = train_test_split(X_ls, y_ls, test_size=0.30)
 
     with measure_time('Training'):
         print('Training...')
-        baggedModel.fit(X_ls, y_ls)
+        model.fit(X_train, y_train)
+
+    y_pred = model.predict(X_test)
+    print('MSE on 0.2 of LS: ',mean_squared_error(y_true, y_pred, multioutput='uniform_average'))
+
+    with measure_time('Training'):
+        print('Training...')
+        model.fit(X_ls, y_ls)
 
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
@@ -246,8 +241,17 @@ if __name__ == '__main__':
     X_ts = create_learning_matrices(rating_matrix, test_user_movie_pairs)
 
     # Predict
-    y_pred = baggedModel.predict(X_ts)
+    y_pred = model.predict(X_ts)
     # y_pred = model.predict(X_ts)
+    i=0
+    while i<len(y_pred):
+        "y_pred[i] = round(y_pred[i])"
+        if y_pred[i] > 5.0:
+            y_pred[i] = 5.0
+        if y_pred[i] < 1.0:
+            y_pred[i] = 1.0
+        i = i+1
+
 
     # Making the submission file
     fname = make_submission(y_pred, test_user_movie_pairs, 'regression')
