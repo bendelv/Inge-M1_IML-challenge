@@ -289,7 +289,8 @@ if __name__ == '__main__':
     y_pred_MeansGB = modelMeansGB.predict(X_meansGB_test)
     y_pred_NoMeansGB = modelNoMeansGB.predict(X_MF_test)
 
-    X_ls_MLP = np.hstack((y_pred_MeansGB, y_pred_NoMeansGB))
+    X_ls_MLP = np.concatenate((y_pred_MeansGB, y_pred_NoMeansGB), axis=1)
+
     y_ls_MLP = y_MF_test
 
     np.savetxt('X_ls_MLP.txt', X_ls_MLP, fmt='%f')
@@ -313,7 +314,7 @@ if __name__ == '__main__':
 
     # Predict
     print("Predict..")
-    X_ts_MLP = np.hstack((y_pred_MeansGB, y_pred_NoMeansGB))
+    X_ts_MLP = np.concatenate((y_pred_MeansGB, y_pred_NoMeansGB), axis=1)
     y_pred = mlp_model.predict(X_ts_MLP)
 
     i=0
