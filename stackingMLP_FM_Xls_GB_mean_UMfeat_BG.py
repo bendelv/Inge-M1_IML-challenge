@@ -130,8 +130,6 @@ def create_lm_meansGB(rating_matrix, user_movie_pairs):
     mean_users = np.zeros((user_features.shape[0], 1))
     mean_movies = np.zeros((movie_features.shape[0], 1))
 
-    print('Begin mean')
-
     for i in np.arange(1, user_features.shape[0]):
             mean_users[i] = np.mean(user_features[i][:])
             mean_movies[i] = np.mean(movie_features[i][:])
@@ -140,8 +138,6 @@ def create_lm_meansGB(rating_matrix, user_movie_pairs):
                 mean_users[i] = 0
             if np.isnan(mean_movies[i]):
                 mean_movies[i] = 0
-
-    print('End mean')
 
     X = np.column_stack((mean_users, mean_movies))
     X = np.concatenate((X, age_stack), axis=1)
@@ -286,6 +282,7 @@ if __name__ == '__main__':
 
     with measure_time('Training'):
         print('Training first layers...')
+        print(X_meansGB_train.shape, X_MF_train.shape)
         modelMeansGB.fit(X_meansGB_train, y_meansGB_train)
         modelNoMeansGB.fit(X_MF_train, y_MF_train)
 
@@ -295,8 +292,8 @@ if __name__ == '__main__':
     X_ls_MLP = np.hstack((y_pred_MeansGB, y_pred_NoMeansGB))
     y_ls_MLP = y_MF_test
 
-    np.savetxt('X_ls_MLP.txt', X_ls_MLP, fm='%f')
-    np.savetxt('y_ls_MLP.txt', y_ls_MLP, fm='%f')
+    np.savetxt('X_ls_MLP.txt', X_ls_MLP, fmt='%f')
+    np.savetxt('y_ls_MLP.txt', y_ls_MLP, fmt='%f')
 
     mlp_model = MLPRegressor(max_iter = 200, early_stopping = True)
     with measure_time('Training'):
