@@ -11,9 +11,9 @@ from contextlib import contextmanager
 import pandas as pd
 import numpy as np
 from scipy import sparse
-from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.model_selection import cross_val_score
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import train_test_split
 
 def slice_feature(data_matrix, n):
     return data_matrix[:, n]
@@ -82,8 +82,7 @@ def build_rating_matrix(user_movie_rating_triplets):
 
     return sparse.coo_matrix((training_ratings, (rows, cols))).tocsr()
 
-
-def create_learning_matrices(rating_matrix, user_movie_pairs):
+def create_lm_meansGB(rating_matrix, user_movie_pairs):
     """
     Create the learning matrix `X` from the `rating_matrix`.
 
@@ -134,8 +133,8 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     print('Begin mean')
 
     for i in np.arange(1, user_features.shape[0]):
-            mean_users[i] = np.mean(user_features[i].data)
-            mean_movies[i] = np.mean(movie_features[i].data)
+            mean_users[i] = np.mean(user_features[i][:])
+            mean_movies[i] = np.mean(movie_features[i][:])
 
             if np.isnan(mean_users[i]):
                 mean_users[i] = 0
@@ -145,8 +144,49 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     print('End mean')
 
     X = np.column_stack((mean_users, mean_movies))
-
     X = np.concatenate((X, age_stack), axis=1)
+
+    return X
+
+def create_lm_MF(rating_matrix, user_movie_pairs):
+    """
+    Create the learning matrix `X` from the `rating_matrix`.
+
+    If `u, m = user_movie_pairs[i]`, then X[i] is the feature vector
+    corresponding to user `u` and movie `m`. The feature vector is composed
+    of `n_users + n_movies` features. The `n_users` first features is the
+    `u-th` row of the `rating_matrix`. The `n_movies` last features is the
+    `m-th` columns of the `rating_matrix`
+
+    In other words, the feature vector for a pair (user, movie) is the
+    concatenation of the rating the given user made for all the movies and
+    the rating the given movie receive from all the user.
+
+    Parameters
+    ----------
+    rating_matrix: sparse matrix [n_users, n_movies]
+        The rating matrix. i.e. `rating_matrix[u, m]` is the rating given
+        by the user `u` for the movie `m`. If the user did not give a rating for
+        that movie, `rating_matrix[u, m] = 0`
+    user_movie_pairs: array [n_predictions, 2]
+        If `u, m = user_movie_pairs[i]`, the i-th raw of the learning matrix
+        must relate to user `u` and movie `m`
+
+    Return
+    ------
+    X: sparse array [n_predictions, n_users + n_movies]
+        The learning matrix in csr sparse format
+    """
+    # Feature for users
+    prefix = 'data/'
+    data_user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
+
+    user_features = rating_matrix[user_movie_pairs[:, 0]]
+
+    # Features for movies
+    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
+
+    X = np.hstack((user_features, movie_features))
 
     return X
 
@@ -213,42 +253,79 @@ if __name__ == '__main__':
 
     # Build the learning matrix
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
-    print('début X_ls')
-    X_ls = create_learning_matrices(rating_matrix, training_user_movie_pairs)
-    print('end X_ls')
-    y_ls = training_labels
 
+    print("Load reconstructed..")
     reconstructed = np.loadtxt('reconstructed/reconstructed_mat_10_0002_001_2000.txt')
 
     row, col = rating_matrix.nonzero()
     array_rating = rating_matrix.toarray()
+    print("Correction and remplacement of reconstructed..")
+    # Correction of the values <1 and >5
+    for i in range(0,912):
+        for j in range(0,1542):
+            if reconstructed[i][j] < 1.0:
+                reconstructed[i][j] = 1.0
+            if reconstructed[i][j] > 5.0:
+                reconstructed[i][j] = 5.0
 
     for i, j in zip(row, col):
         reconstructed[i][j] = array_rating[i][j]
 
-    X_ts = create_learning_matrices(reconstructed, training_user_movie_pairs)
+    y_ls = training_labels
 
-    model = GradientBoostingRegressor(min_samples_split=4, max_depth=5)
+    X_ls_MF = create_lm_MF(reconstructed, training_user_movie_pairs)
+    print(X_ls_MF.shape)
+    X_MF_train, X_MF_test, y_MF_train, y_MF_test = train_test_split(X_ls_MF, y_ls, test_size=0.5, random_state = 1)
 
-    print('Begin CV..')
+    X_ls_meansGB = create_lm_meansGB(reconstructed, training_user_movie_pairs)
+    print(X_ls_meansGB.shape)
+    X_meansGB_train, X_meansGB_test, y_meansGB_train, y_meansGB_test = train_test_split(X_ls_meansGB, y_ls, test_size=0.5, random_state = 1)
 
-    scores = cross_val_score(model, X_ls, y_ls, scoring= 'neg_mean_squared_error', cv=5, n_jobs = -1)
-    print(np.std(scores), '\t' ,np.mean(scores))
+    modelMeansGB = GradientBoostingRegressor(min_samples_split=2, max_depth=4, min_samples_leaf = 0.0001)
+    modelNoMeansGB = GradientBoostingRegressor(min_samples_split=2, max_depth=4, min_samples_leaf = 0.0001)
 
     with measure_time('Training'):
-        print('Training...')
-        model.fit(X_ls, y_ls)
+        print('Training first layers...')
+        modelMeansGB.fit(X_meansGB_train, y_meansGB_train)
+        modelNoMeansGB.fit(X_MF_train, y_MF_train)
+
+    y_pred_MeansGB = modelMeansGB.predict(X_meansGB_test)
+    y_pred_NoMeansGB = modelNoMeansGB.predict(X_MF_test)
+
+    X_ls_MLP = np.hstack((y_pred_MeansGB, y_pred_NoMeansGB))
+    y_ls_MLP = y_MF_test
+
+    np.savetxt('X_ls_MLP.txt', X_ls_MLP, fm='%f')
+    np.savetxt('y_ls_MLP.txt', y_ls_MLP, fm='%f')
+
+    mlp_model = MLPRegressor(max_iter = 200, early_stopping = True)
+    with measure_time('Training'):
+        print('Training MLP layer...')
+        mlp_model.fit(X_ls_MLP, y_ls_MLP)
 
     # ------------------------------ Prediction ------------------------------ #
     # Load test data
     test_user_movie_pairs = load_from_csv(os.path.join(prefix, 'data_test.csv'))
 
     # Build the prediction matrix
-    X_ts = create_learning_matrices(reconstructed, test_user_movie_pairs)
+    X_ts_MF = create_lm_MF(reconstructed, training_user_movie_pairs)
+    X_ts_meansGB = create_lm_meansGB(reconstructed, training_user_movie_pairs)
+
+    y_pred_MeansGB = modelMeansGB.predict(X_ts_meansGB)
+    y_pred_NoMeansGB = modelNoMeansGB.predict(X_ts_MF)
 
     # Predict
     print("Predict..")
-    y_pred = model.predict(X_ts)
+    X_ts_MLP = np.hstack((y_pred_MeansGB, y_pred_NoMeansGB))
+    y_pred = mlp_model.predict(X_ts_MLP)
+
+    i=0
+    while i<len(y_pred):
+        if y_pred[i] > 5.0:
+            y_pred[i] = 5.0
+        if y_pred[i] < 1.0:
+            y_pred[i] = 1.0
+        i = i+1
 
     # Making the submission file
     file_name =  os.path.basename(sys.argv[0]).split(".")[0]
