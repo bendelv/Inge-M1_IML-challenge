@@ -286,8 +286,9 @@ if __name__ == '__main__':
         modelMeansGB.fit(X_meansGB_train, y_meansGB_train)
         modelNoMeansGB.fit(X_MF_train, y_MF_train)
 
-    y_pred_MeansGB = modelMeansGB.predict(X_meansGB_test)
-    y_pred_NoMeansGB = modelNoMeansGB.predict(X_MF_test)
+    print('Predict first layers...')
+    y_pred_MeansGB = modelMeansGB.predict(X_meansGB_test).reshape((-1, 1))
+    y_pred_NoMeansGB = modelNoMeansGB.predict(X_MF_test).reshape((-1, 1))
 
     X_ls_MLP = np.hstack((y_pred_MeansGB, y_pred_NoMeansGB))
     y_ls_MLP = y_MF_test
@@ -308,8 +309,8 @@ if __name__ == '__main__':
     X_ts_MF = create_lm_MF(reconstructed, training_user_movie_pairs)
     X_ts_meansGB = create_lm_meansGB(reconstructed, training_user_movie_pairs)
 
-    y_pred_MeansGB = modelMeansGB.predict(X_ts_meansGB)
-    y_pred_NoMeansGB = modelNoMeansGB.predict(X_ts_MF)
+    y_pred_MeansGB = modelMeansGB.predict(X_ts_meansGB).reshape((-1, 1))
+    y_pred_NoMeansGB = modelNoMeansGB.predict(X_ts_MF).reshape((-1, 1))
 
     # Predict
     print("Predict..")
