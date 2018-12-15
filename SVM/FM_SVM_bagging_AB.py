@@ -242,7 +242,15 @@ if __name__ == '__main__':
     # Predict
     y_pred = baggedModel.predict(X_ts)
     # y_pred = model.predict(X_ts)
-
+    i=0
+    while i<len(y_pred):
+        "y_pred[i] = round(y_pred[i])"
+        if y_pred[i] > 5.0:
+            y_pred[i] = 5.0
+        if y_pred[i] < 1.0:
+            y_pred[i] = 1.0
+        i = i+1
+        
     # Making the submission file
     fname = make_submission(y_pred, test_user_movie_pairs, 'regression')
     print('Submission file "{}" successfully written'.format(fname))
