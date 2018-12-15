@@ -112,22 +112,14 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     X: sparse array [n_predictions, n_users + n_movies]
         The learning matrix in csr sparse format
     """
-
+    # Feature for users
     prefix = 'data/'
     data_user = load_from_csv(os.path.join(prefix, 'data_user.csv'))
-    "Feature for users"
-    # Feature gender
-    gender = slice_feature(data_user, 2)
 
-    for i in np.arange(len(gender)):
-        if gender[i] == 'M':
-            gender[i] = 0
-        else:
-            gender[i] = 1
+    user_features = rating_matrix[user_movie_pairs[:, 0]]
 
-    gender_stack = np.zeros((len(user_movie_pairs), 1))
-    for i in np.arange(len(user_movie_pairs)):
-        gender_stack[i] = gender[user_movie_pairs[i, 0] - 1]
+    # Features for movies
+    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
 
     # Feature age
     age = slice_feature(data_user, 1)
@@ -136,36 +128,9 @@ def create_learning_matrices(rating_matrix, user_movie_pairs):
     for i in np.arange(len(user_movie_pairs)):
         age_stack[i] = age[user_movie_pairs[i, 0] - 1]
 
-    # Feature user ratings on movies
-    rating_matrix = rating_matrix.tocsr()
-    user_features = rating_matrix[user_movie_pairs[:, 0]]
+    X = np.hstack((user_features, movie_features))
 
-    # Features for movies
-    "data_movie = load_from_csv(os.path.join(prefix, 'data_movie.csv'))"
-    "data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',').values.squeeze()"
-
-    data_movie = pd.read_csv(os.path.join(prefix, 'data_movie.csv'), delimiter=',', encoding='latin-1').values.squeeze()
-
-
-    # Feature genre 5 - 23
-    genre = data_movie[:, 5:23]
-    genres_stack = np.zeros((len(user_movie_pairs), genre.shape[1]))
-
-    for i in np.arange(len(user_movie_pairs)):
-            genres_stack[i][:] = genre[user_movie_pairs[i, 1] - 1, :]
-
-
-    #Feature movie rating by users
-    rating_matrix = rating_matrix.tocsc()
-    movie_features = rating_matrix[:, user_movie_pairs[:, 1]].transpose()
-
-    X = sparse.hstack((user_features, movie_features))
-    X = sparse.hstack((X, gender_stack))
-    X = sparse.hstack((X, age_stack))
-    X = sparse.hstack((X, genres_stack))
-
-    return X.tocsr()
-
+    return X
 
 def make_submission(y_predict, user_movie_ids, file_name='submission',
                     date=True):
@@ -228,10 +193,20 @@ if __name__ == '__main__':
                                             training_labels.reshape((-1, 1))))
 
     rating_matrix = build_rating_matrix(user_movie_rating_triplets)
+    print("Load reconstructed..")
     reconstructed = np.loadtxt('reconstructed/reconstructed_mat_10_0002_001_2000.txt')
 
     row, col = rating_matrix.nonzero()
     array_rating = rating_matrix.toarray()
+
+    print("Correction and remplacement of reconstructed..")
+    # Correction of the values <1 and >5
+    for i in range(0,912):
+        for j in range(0,1542):
+            if reconstructed[i][j] < 1.0:
+                reconstructed[i][j] = 1.0
+            if reconstructed[i][j] > 5.0:
+                reconstructed[i][j] = 5.0
 
     for i, j in zip(row, col):
         reconstructed[i][j] = array_rating[i][j]
